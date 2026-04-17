@@ -36,3 +36,11 @@ class TestSnakeMovimento:
         snake.grow()
         snake.move('d')
         assert snake.body() == [(5, 6), (5, 5)]
+
+class TestSnakeColisao:
+    def test_nao_pode_inverter_direcao(self):
+        snake = Snake(start=(5, 5))
+        snake.move('d')
+        snake.move('a')
+        assert snake.head() == (5, 7)
+
