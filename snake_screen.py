@@ -9,6 +9,7 @@ class Snake:
     def __init__(self, start):
         self._body = [start]
         self.grow_pending = 0
+        self.current_dir = ''
 
     def head(self):
         return self._body[0]
@@ -22,6 +23,9 @@ class Snake:
 
     def move(self, direction):
         r, c = self.head()
+        
+        if (direction == 'a' and self.current_dir == 'd'):
+            direction = self.current_dir
 
         if direction == 's':
             r += 1
@@ -31,6 +35,8 @@ class Snake:
             c -= 1
         elif direction == 'd':
             c += 1
+        
+        self.current_dir = direction
 
         new_head = (r, c)
         
