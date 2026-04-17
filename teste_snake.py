@@ -14,3 +14,9 @@ class TestSnakeCriacao:
         snake = Snake(start=(5, 5))
         assert len(snake.body()) == 1
 
+class TestSnakeMovimento:
+    def test_mover_para_baixo(self):
+        snake = Snake(start=(5,5))
+        snake.move('s')
+        assert snake.head() == (6, 5) # Desloca verticalmente e a linha aumenta
+
