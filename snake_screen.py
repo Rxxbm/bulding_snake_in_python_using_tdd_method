@@ -20,6 +20,12 @@ class Snake:
 
         if direction == 's':
             r += 1
+        elif direction == 'w':
+            r -= 1
+        elif direction == 'a':
+            c -= 1
+        elif direction == 'd':
+            c += 1
 
         new_head = (r, c)
         
