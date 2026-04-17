@@ -16,8 +16,16 @@ class Snake:
         return list(self._body)
     
     def move(self, direction):
+        r, c = self.head()
+
         if direction == 's':
-            self._body[0] = (6, 5)
+            r += 1
+
+        new_head = (r, c)
+        
+        self._body.insert(0, new_head)
+        
+        self._body.pop()
 
 class io_handler:
 
