@@ -1,32 +1,42 @@
 import os
-import keyboard
+import sys
+import tty
+import termios
+import threading
 import time
 
 
 class io_handler:
-    
+
     x_size: int
     y_size: int
-    game_speed = float
+    game_speed: float
     last_input: str
-    matrix = []
 
     def __init__(self, dim, speed):
         self.x_size = dim[0]
         self.y_size = dim[1]
-        
         self.game_speed = speed
         self.last_input = 'w'
-
-        for i in range (self.y_size): 
-            self.matrix.append([0]*self.x_size)
+        self.matrix = [[0] * self.x_size for _ in range(self.y_size)]
 
     def record_inputs(self):
-        keyboard.add_hotkey('w', lambda: setattr(self, "last_input", 'w'))
-        keyboard.add_hotkey('a', lambda: setattr(self, "last_input", 'a'))
-        keyboard.add_hotkey('s', lambda: setattr(self, "last_input", 's'))
-        keyboard.add_hotkey('d', lambda: setattr(self, "last_input", 'd'))
-        keyboard.add_hotkey('esc', lambda: setattr(self, "last_input", 'end'))
+        def read_keys():
+            fd = sys.stdin.fileno()
+            old = termios.tcgetattr(fd)
+            try:
+                tty.setraw(fd)
+                while True:
+                    ch = sys.stdin.read(1)
+                    if ch in ('w', 'a', 's', 'd'):
+                        self.last_input = ch
+                    elif ch == '\x1b':
+                        self.last_input = 'end'
+            finally:
+                termios.tcsetattr(fd, termios.TCSADRAIN, old)
+
+        t = threading.Thread(target=read_keys, daemon=True)
+        t.start()
 
     def display(self):
         def display_h_line(self):
@@ -54,22 +64,23 @@ class io_handler:
             display_content_line(line)
         display_h_line(self)
 
-### exemplo do uso da classe io_handler  
-instance = io_handler((10,15), 0.5)
-instance.matrix[0][0] = 1 #corpo
-instance.matrix[0][1] = 2 #cabeça
-instance.matrix[0][2] = 3 #fruta
+### exemplo do uso da classe io_handler
+if __name__ == '__main__':
+    instance = io_handler((10,15), 0.5)
+    instance.matrix[0][0] = 1 #corpo
+    instance.matrix[0][1] = 2 #cabeça
+    instance.matrix[0][2] = 3 #fruta
 
-def game_loop():
-    instance.record_inputs()
-    while True:
-        instance.display()
-        print("mova com WASD, saia com esc. Ultimo botão:", end=' ')
-        ###adicione seu código para lidar com o jogo aqui
+    def game_loop():
+        instance.record_inputs()
+        while True:
+            instance.display()
+            print("mova com WASD, saia com esc. Ultimo botão:", end=' ')
+            ###adicione seu código para lidar com o jogo aqui
 
-        print(instance.last_input)
-        if(instance.last_input == 'end'):
-            exit()
-        time.sleep(instance.game_speed)
+            print(instance.last_input)
+            if(instance.last_input == 'end'):
+                exit()
+            time.sleep(instance.game_speed)
 
-game_loop()
+    game_loop()
