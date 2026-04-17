@@ -24,7 +24,9 @@ class Snake:
     def move(self, direction):
         r, c = self.head()
         
-        if (direction == 'a' and self.current_dir == 'd'):
+        opposites = {'w': 's', 's': 'w', 'a':'d', 'd':'a'}
+        
+        if self.current_dir and direction == opposites.get(self.current_dir):
             direction = self.current_dir
 
         if direction == 's':
