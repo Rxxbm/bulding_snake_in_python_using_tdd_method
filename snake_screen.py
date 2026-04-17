@@ -5,6 +5,16 @@ import termios
 import threading
 import time
 
+class Snake:
+    def __init__(self, start):
+        self._body = [start]
+
+    def head(self):
+        return self._body[0]
+
+    def body(self):
+        return list(self._body)
+
 
 class io_handler:
 
