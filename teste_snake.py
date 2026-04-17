@@ -31,4 +31,8 @@ class TestSnakeMovimento:
         snake = Snake(start=(5,5))
         snake.move('w')
         assert snake.head() == (4, 5) # Desloca verticalmente e a linha aumenta
-
+    def test_corpo_segue_cabeca(self):
+        snake = Snake(start=(5,5))
+        snake.grow()
+        snake.move('d')
+        assert snake.body() == [(5, 6), (5, 5)]
