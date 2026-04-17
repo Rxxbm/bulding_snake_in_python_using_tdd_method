@@ -19,4 +19,16 @@ class TestSnakeMovimento:
         snake = Snake(start=(5,5))
         snake.move('s')
         assert snake.head() == (6, 5) # Desloca verticalmente e a linha aumenta
+    def test_mover_para_direita(self):
+        snake = Snake(start=(5,5))
+        snake.move('d')
+        assert snake.head() == (5, 6) # Desloca verticalmente e a linha aumenta
+    def test_mover_para_esquerda(self):
+        snake = Snake(start=(5,5))
+        snake.move('a')
+        assert snake.head() == (5, 4) # Desloca verticalmente e a linha aumenta
+    def test_mover_para_cima(self):
+        snake = Snake(start=(5,5))
+        snake.move('w')
+        assert snake.head() == (4, 5) # Desloca verticalmente e a linha aumenta
 
