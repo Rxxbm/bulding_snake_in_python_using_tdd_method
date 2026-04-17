@@ -8,6 +8,7 @@ import time
 class Snake:
     def __init__(self, start):
         self._body = [start]
+        self.grow_pending = 0
 
     def head(self):
         return self._body[0]
@@ -15,6 +16,10 @@ class Snake:
     def body(self):
         return list(self._body)
     
+    def grow(self):
+        self.grow_pending += 1
+
+
     def move(self, direction):
         r, c = self.head()
 
@@ -30,8 +35,10 @@ class Snake:
         new_head = (r, c)
         
         self._body.insert(0, new_head)
-        
-        self._body.pop()
+        if self.grow_pending > 0:
+            self.grow_pending -= 1
+        else:
+            self._body.pop()
 
 class io_handler:
 
