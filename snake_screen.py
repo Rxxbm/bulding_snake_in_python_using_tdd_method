@@ -14,7 +14,10 @@ class Snake:
 
     def body(self):
         return list(self._body)
-
+    
+    def move(self, direction):
+        if direction == 's':
+            self._body[0] = (6, 5)
 
 class io_handler:
 
