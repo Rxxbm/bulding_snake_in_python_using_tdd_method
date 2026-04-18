@@ -53,8 +53,15 @@ class TestSnakeColisao:
 
     def test_colisao_com_o_proprio_corpo(self):
         snake = Snake(start=[(5, 5), (5, 4), (4, 4)])
-        snake.move('a') # Vai para (5, 4)
+        snake.move('a') # Vai para (5, 4) - deve morrer
         assert snake.is_dead() == True
+
+    def test_nao_morre_ao_mover_para_cauda_que_sai(self):
+        # Tamanho 2: [(5,5), (5,4)]. Move 's' -> nova cabeça (6,5), cauda (5,4) sai.
+        # Se mover em círculo, não deve morrer na posição da cauda atual.
+        snake = Snake(start=[(5,5), (5,4), (4,4), (4,5)])
+        snake.move('w') # (4, 5) - Onde estava a ponta da cauda
+        assert snake.is_dead() == False
 
     def test_nao_pode_inverter_direcao(self):
         snake = Snake(start=(5, 5))
