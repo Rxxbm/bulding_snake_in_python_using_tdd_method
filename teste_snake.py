@@ -9,9 +9,11 @@ class TestGameEngine:
         assert not engine.snake.is_dead()
 
     def test_engine_aumenta_frutas_ao_atingir_score_10(self):
+        # Inicializa a engine e simula a cobra já tendo tamanho 10
         engine = GameEngine(bounds=(20, 10))
-        for _ in range(10): engine.snake.grow()
-        engine.update('d')
+        # Criamos uma cobra com 10 segmentos
+        engine.snake._body = [(0,i) for i in range(10)]
+        engine.update('d') # Faz a cobra se mover e checar as regras
         assert len(engine.fruits) == 2
 
 class TestSnakeCriacao:
