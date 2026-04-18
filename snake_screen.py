@@ -51,8 +51,9 @@ class Snake:
         
         new_head = (r, c)
         
-        # Colisão básica (Commit Green)
-        if new_head in self._body:
+        # Colisão com o próprio corpo (ignora a ponta da cauda se não estiver crescendo)
+        check_body = self._body if self.grow_pending > 0 else self._body[:-1]
+        if new_head in check_body:
             self.dead = True
             return
 
