@@ -1,5 +1,18 @@
 import pytest
-from snake_screen import Snake
+from snake_screen import Snake, GameEngine
+
+class TestGameEngine:
+    def test_engine_inicializa_com_uma_fruta(self):
+        engine = GameEngine(bounds=(20, 10))
+        assert len(engine.fruits) == 1
+        assert not engine.snake.is_dead()
+
+    def test_engine_aumenta_frutas_ao_atingir_score_10(self):
+        engine = GameEngine(bounds=(20, 10))
+        # Simula cobra crescendo para tamanho 11 (score 10)
+        for _ in range(10): engine.snake.grow()
+        engine.update('d') # Trigger update logic
+        assert len(engine.fruits) == 2
 
 class TestSnakeCriacao:
     def test_snake_comeca_na_posicao_inicial(self):
