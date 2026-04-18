@@ -38,6 +38,13 @@ class TestSnakeMovimento:
         assert snake.body() == [(5, 6), (5, 5)]
 
 class TestSnakeColisao:
+    def test_wrap_around_direita(self):
+        # Grid 20x10. Cabeça em (5, 19), move 'd' deve ir para (5, 0)
+        snake = Snake(start=(5, 19), bounds=(20, 10), wrap=True)
+        snake.move('d')
+        assert snake.head() == (5, 0)
+        assert snake.is_dead() == False
+
     def test_nao_pode_inverter_direcao(self):
         snake = Snake(start=(5, 5))
         snake.move('d')
