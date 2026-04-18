@@ -40,7 +40,7 @@ class Snake:
 
         if self.wrap:
             c = c % self.bounds[0]
-            # r = r % self.bounds[1] # Será implementado no próximo mini-commit
+            r = r % self.bounds[1]
         else:
             if (c < 0 or c >= self.bounds[0]) or (r < 0 or r >= self.bounds[1]):
                 self.dead = True
