@@ -69,4 +69,17 @@ class TestSnakeColisao:
         snake = Snake(start=(10, 10), bounds=(10, 10))
         snake.move('s')
         assert snake.is_dead() == True
-
+    
+    def test_colisao_corpo_dinamicamente(self):
+        snake = Snake(start=(5, 5))
+        # Faz a cobra crescer até tamanho 5
+        for _ in range(4):
+            snake.grow()
+        
+        snake.move('d') # (5, 6)
+        snake.move('s') # (6, 6)
+        snake.move('a') # (6, 5)
+        snake.move('w') # (5, 5) <- Deve colidir com o local de início onde o corpo ainda está
+        
+        assert snake.is_dead() == True
+        
