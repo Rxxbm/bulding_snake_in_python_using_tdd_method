@@ -5,7 +5,6 @@ from snake_screen import io_handler, Snake
 
 
 class TestSnakeCriacao:
-
     def test_snake_comeca_na_posicao_inicial(self):
         snake = Snake(start=(5, 5))
         assert snake.head() == (5, 5)
@@ -18,19 +17,19 @@ class TestSnakeMovimento:
     def test_mover_para_baixo(self):
         snake = Snake(start=(5,5))
         snake.move('s')
-        assert snake.head() == (6, 5) # Desloca verticalmente e a linha aumenta
+        assert snake.head() == (6, 5) 
     def test_mover_para_direita(self):
         snake = Snake(start=(5,5))
         snake.move('d')
-        assert snake.head() == (5, 6) # Desloca verticalmente e a linha aumenta
+        assert snake.head() == (5, 6)
     def test_mover_para_esquerda(self):
         snake = Snake(start=(5,5))
         snake.move('a')
-        assert snake.head() == (5, 4) # Desloca verticalmente e a linha aumenta
+        assert snake.head() == (5, 4)
     def test_mover_para_cima(self):
         snake = Snake(start=(5,5))
         snake.move('w')
-        assert snake.head() == (4, 5) # Desloca verticalmente e a linha aumenta
+        assert snake.head() == (4, 5)
     def test_corpo_segue_cabeca(self):
         snake = Snake(start=(5,5))
         snake.grow()
@@ -38,6 +37,27 @@ class TestSnakeMovimento:
         assert snake.body() == [(5, 6), (5, 5)]
 
 class TestSnakeColisao:
+    def test_wrap_around_direita(self):
+        snake = Snake(start=(5, 19), bounds=(20, 10), wrap=True)
+        snake.move('d')
+        assert snake.head() == (5, 0)
+        assert snake.is_dead() == False
+
+    def test_wrap_around_esquerda(self):
+        snake = Snake(start=(5, 0), bounds=(20, 10), wrap=True)
+        snake.move('a')
+        assert snake.head() == (5, 19)
+
+    def test_wrap_around_baixo(self):
+        snake = Snake(start=(9, 5), bounds=(20, 10), wrap=True)
+        snake.move('s')
+        assert snake.head() == (0, 5)
+
+    def test_wrap_around_cima(self):
+        snake = Snake(start=(0, 5), bounds=(20, 10), wrap=True)
+        snake.move('w')
+        assert snake.head() == (9, 5)
+
     def test_nao_pode_inverter_direcao(self):
         snake = Snake(start=(5, 5))
         snake.move('d')
