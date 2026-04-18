@@ -56,5 +56,8 @@ class TestSnakeColisao:
         snake.move('w')
         assert snake.head() == (7, 5)
         
-
+    def test_colisao_com_parede(self):
+        snake = Snake(start=(0, 0), bounds=(10, 10))
+        snake.move('a')
+        assert snake.is_dead() == True
 
