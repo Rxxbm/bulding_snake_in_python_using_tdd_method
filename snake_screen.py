@@ -15,7 +15,7 @@ class Snake:
         self.grow_pending = 0
         self.current_dir = ''
         self.dead = False
-        self.bounds = bounds # (width, height)
+        self.bounds = bounds
         self.wrap = wrap
 
     def is_dead(self):
@@ -78,9 +78,8 @@ class io_handler:
                 tty.setraw(fd)
                 while True:
                     ch = sys.stdin.read(1)
-                    if ch in ('w', 'a', 's', 'd'):
-                        self.last_input = ch
-                    elif ch == '\x1b': # ESC
+                    if ch in ('w', 'a', 's', 'd'): self.last_input = ch
+                    elif ch == '\x1b':
                         self.last_input = 'end'
                         break
             finally:
@@ -90,86 +89,56 @@ class io_handler:
 
     def update_state(self, snake, fruits):
         for r in range(self.y_size):
-            for c in range(self.x_size):
-                self.matrix[r][c] = 0
+            for c in range(self.x_size): self.matrix[r][c] = 0
         for fr, fc in fruits:
-            if 0 <= fr < self.y_size and 0 <= fc < self.x_size:
-                self.matrix[fr][fc] = 3
+            if 0 <= fr < self.y_size and 0 <= fc < self.x_size: self.matrix[fr][fc] = 3
         for i, (r, c) in enumerate(snake.body()):
-            if 0 <= r < self.y_size and 0 <= c < self.x_size:
-                self.matrix[r][c] = 2 if i == 0 else 1
+            if 0 <= r < self.y_size and 0 <= c < self.x_size: self.matrix[r][c] = 2 if i == 0 else 1
 
     def display(self, snake, fruits):
-        output = "\033[H" 
+        output = "\033[H"
         h_line = "+" + "--" * self.x_size + "+\r\n"
         output += h_line
         for line in self.matrix:
-            row_str = "|"
+            row = "|"
             for item in line:
-                if item == 1: row_str += "[]"
-                elif item == 2: row_str += "<>"
-                elif item == 3: row_str += "()"
-                else: row_str += "  "
-            row_str += "|\r\n"
-            output += row_str
+                if item == 1: row += "[]"
+                elif item == 2: row += "<>"
+                elif item == 3: row += "()"
+                else: row += "  "
+            output += row + "|\r\n"
         output += h_line
-        score = len(snake.body()) - 1
-        output += f"TECLA: {self.last_input.upper()} | SCORE: {score} | FRUTAS: {len(fruits)}\r\n"
-        output += "WASD para mover | ESC para sair\r\n"
+        output += f"SCORE: {len(snake.body())-1} | TECLA: {self.last_input.upper()}\r\n"
         sys.stdout.write(output)
         sys.stdout.flush()
 
-def get_fruit_spawn_pos(snake, fruits, bounds):
+def spawn_fruit(snake, fruits, bounds):
     while True:
-        r = random.randint(0, bounds[1] - 1)
-        c = random.randint(0, bounds[0] - 1)
-        if (r, c) not in snake.body() and (r, c) not in fruits:
-            return (r, c)
+        r, c = random.randint(0, bounds[1]-1), random.randint(0, bounds[0]-1)
+        if (r, c) not in snake.body() and (r, c) not in fruits: return (r, c)
 
 def main():
-    DIM = (20, 10) 
-    SPEED = 0.15
-    
-    screen = io_handler(DIM, SPEED)
-    start_pos = (DIM[1] // 2, DIM[0] // 2)
-    snake = Snake(start=start_pos, bounds=DIM, wrap=True)
-    fruits = [get_fruit_spawn_pos(snake, [], DIM)]
-
+    DIM = (20, 10)
+    screen = io_handler(DIM, 0.15)
+    snake = Snake(start=(DIM[1]//2, DIM[0]//2), bounds=DIM, wrap=True)
+    fruits = [spawn_fruit(snake, [], DIM)]
     screen.record_inputs()
-    sys.stdout.write("\033[2J")
-    
+    sys.stdout.write("\033[2J\033[?25l")
     try:
         while True:
-            current_input = screen.last_input
-            if current_input == 'end': break
-
-            snake.move(current_input)
-            if snake.is_dead():
-                screen.update_state(snake, fruits)
-                screen.display(snake, fruits)
-                sys.stdout.write("\r\n[ GAME OVER ]\r\n")
-                break
-
-            # Verifica se comeu QUALQUER uma das frutas
-            head = snake.head()
-            if head in fruits:
+            if screen.last_input == 'end': break
+            snake.move(screen.last_input)
+            if snake.is_dead(): break
+            if snake.head() in fruits:
                 snake.grow()
-                fruits.remove(head)
-            
-            # Lógica de spawn de frutas: quantidade baseada em (tamanho // 10) + 1
-            required_fruits = (len(snake.body()) // 10) + 1
-            while len(fruits) < required_fruits:
-                fruits.append(get_fruit_spawn_pos(snake, fruits, DIM))
-
+                fruits.remove(snake.head())
+            while len(fruits) < (len(snake.body()) // 10) + 1:
+                fruits.append(spawn_fruit(snake, fruits, DIM))
             screen.update_state(snake, fruits)
             screen.display(snake, fruits)
             time.sleep(screen.game_speed)
-    except KeyboardInterrupt:
-        pass
     finally:
-        sys.stdout.write("\033[?25h")
-        sys.stdout.flush()
+        sys.stdout.write("\033[?25h\r\nGAME OVER\r\n")
 
 if __name__ == '__main__':
-    sys.stdout.write("\033[?25l")
     main()
