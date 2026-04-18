@@ -6,10 +6,15 @@ import threading
 import time
 
 class Snake:
-    def __init__(self, start):
+    def __init__(self, start, bounds=(10,10)):
         self._body = [start]
         self.grow_pending = 0
         self.current_dir = ''
+        self.dead = False
+        self.bounds = bounds
+
+    def is_dead(self):
+        return self.dead
 
     def head(self):
         return self._body[0]
@@ -19,7 +24,6 @@ class Snake:
     
     def grow(self):
         self.grow_pending += 1
-
 
     def move(self, direction):
         r, c = self.head()
@@ -37,6 +41,10 @@ class Snake:
             c -= 1
         elif direction == 'd':
             c += 1
+
+        if c < 0:
+            self.dead = True
+            return
         
         self.current_dir = direction
 
@@ -49,7 +57,6 @@ class Snake:
             self._body.pop()
 
 class io_handler:
-
     x_size: int
     y_size: int
     game_speed: float
