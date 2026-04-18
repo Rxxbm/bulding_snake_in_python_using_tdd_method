@@ -43,4 +43,18 @@ class TestSnakeColisao:
         snake.move('d')
         snake.move('a')
         assert snake.head() == (5, 7)
+        snake = Snake(start=(5, 5))
+        snake.move('a')
+        snake.move('d')
+        assert snake.head() == (5, 3)
+        snake = Snake(start=(5, 5))
+        snake.move('w')
+        snake.move('s')
+        assert snake.head() == (3, 5)
+        snake = Snake(start=(5, 5))
+        snake.move('s')
+        snake.move('w')
+        assert snake.head() == (7, 5)
+        
+
 
