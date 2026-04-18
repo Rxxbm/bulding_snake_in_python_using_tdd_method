@@ -46,9 +46,13 @@ class Snake:
             self.dead = True
             return
         
-        self.current_dir = direction
-
         new_head = (r, c)
+        
+        if new_head in self._body:
+            self.dead = True
+            return
+
+        self.current_dir = direction
         
         self._body.insert(0, new_head)
         if self.grow_pending > 0:
