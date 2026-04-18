@@ -60,4 +60,13 @@ class TestSnakeColisao:
         snake = Snake(start=(0, 0), bounds=(10, 10))
         snake.move('a')
         assert snake.is_dead() == True
+        snake = Snake(start=(0, 0), bounds=(10, 10))
+        snake.move('w')
+        assert snake.is_dead() == True
+        snake = Snake(start=(10, 10), bounds=(10, 10))
+        snake.move('d')
+        assert snake.is_dead() == True
+        snake = Snake(start=(10, 10), bounds=(10, 10))
+        snake.move('s')
+        assert snake.is_dead() == True
 
