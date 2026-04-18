@@ -8,7 +8,10 @@ import random
 
 class Snake:
     def __init__(self, start, bounds=(10,10), wrap=False):
-        self._body = [start]
+        if isinstance(start, list):
+            self._body = list(start)
+        else:
+            self._body = [start]
         self.grow_pending = 0
         self.current_dir = ''
         self.dead = False
@@ -46,8 +49,14 @@ class Snake:
                 self.dead = True
                 return
         
-        self.current_dir = direction
         new_head = (r, c)
+        
+        # Colisão básica (Commit Green)
+        if new_head in self._body:
+            self.dead = True
+            return
+
+        self.current_dir = direction
         self._body.insert(0, new_head)
         if self.grow_pending > 0:
             self.grow_pending -= 1
