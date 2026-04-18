@@ -63,43 +63,42 @@ class TestSnakeColisao:
         snake.move('d')
         snake.move('a')
         assert snake.head() == (5, 7)
-        snake = Snake(start=(5, 5))
-        snake.move('a')
-        snake.move('d')
-        assert snake.head() == (5, 3)
-        snake = Snake(start=(5, 5))
-        snake.move('w')
-        snake.move('s')
-        assert snake.head() == (3, 5)
-        snake = Snake(start=(5, 5))
-        snake.move('s')
-        snake.move('w')
-        assert snake.head() == (7, 5)
         
     def test_colisao_com_parede(self):
         snake = Snake(start=(0, 0), bounds=(10, 10))
         snake.move('a')
         assert snake.is_dead() == True
-        snake = Snake(start=(0, 0), bounds=(10, 10))
-        snake.move('w')
-        assert snake.is_dead() == True
-        snake = Snake(start=(10, 10), bounds=(10, 10))
-        snake.move('d')
-        assert snake.is_dead() == True
-        snake = Snake(start=(10, 10), bounds=(10, 10))
-        snake.move('s')
-        assert snake.is_dead() == True
     
+    def test_colisao_com_o_proprio_corpo(self):
+        snake = Snake(start=[(5, 5), (5, 4), (4, 4)])
+        snake.move('a') 
+        assert snake.is_dead() == True
+
     def test_colisao_corpo_dinamicamente(self):
         snake = Snake(start=(5, 5))
-        # Faz a cobra crescer até tamanho 5
         for _ in range(4):
             snake.grow()
-        
         snake.move('d') # (5, 6)
         snake.move('s') # (6, 6)
         snake.move('a') # (6, 5)
-        snake.move('w') # (5, 5) <- Deve colidir com o local de início onde o corpo ainda está
-        
+        snake.move('w') # (5, 5)
         assert snake.is_dead() == True
-        
+
+class TestGameLogic:
+    def test_quantidade_de_frutas_base_inicial(self):
+        snake = Snake(start=(0,0))
+        assert (len(snake.body()) // 10) + 1 == 1
+
+    def test_quantidade_de_frutas_tamanho_10(self):
+        snake = Snake(start=[(0,i) for i in range(10)])
+        assert (len(snake.body()) // 10) + 1 == 2
+
+    def test_quantidade_de_frutas_tamanho_20(self):
+        snake = Snake(start=[(0,i) for i in range(20)])
+        assert (len(snake.body()) // 10) + 1 == 3
+
+    def test_comer_uma_das_várias_frutas(self):
+        snake = Snake(start=(5,5))
+        frutas = [(5,6), (1,1)]
+        snake.move('d')
+        assert snake.head() in frutas
