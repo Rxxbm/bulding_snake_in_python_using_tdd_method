@@ -45,6 +45,12 @@ class TestSnakeColisao:
         assert snake.head() == (5, 0)
         assert snake.is_dead() == False
 
+    def test_wrap_around_baixo(self):
+        # Grid 20x10. Cabeça em (9, 5), move 's' deve ir para (0, 5)
+        snake = Snake(start=(9, 5), bounds=(20, 10), wrap=True)
+        snake.move('s')
+        assert snake.head() == (0, 5)
+
     def test_nao_pode_inverter_direcao(self):
         snake = Snake(start=(5, 5))
         snake.move('d')
