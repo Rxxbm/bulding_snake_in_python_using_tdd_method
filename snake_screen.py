@@ -42,7 +42,7 @@ class Snake:
         elif direction == 'd':
             c += 1
 
-        if c < 0:
+        if (c < 0 or c > self.bounds[1]) or (r < 0 or r > self.bounds[0]):
             self.dead = True
             return
         
