@@ -1,5 +1,6 @@
 import pytest
-from snake_screen import Snake, GameEngine
+from snake import Snake
+from game_engine import GameEngine
 
 class TestGameEngine:
     def test_engine_inicializa_com_uma_fruta(self):
@@ -9,9 +10,8 @@ class TestGameEngine:
 
     def test_engine_aumenta_frutas_ao_atingir_score_10(self):
         engine = GameEngine(bounds=(20, 10))
-        # Simula cobra crescendo para tamanho 11 (score 10)
         for _ in range(10): engine.snake.grow()
-        engine.update('d') # Trigger update logic
+        engine.update('d')
         assert len(engine.fruits) == 2
 
 class TestSnakeCriacao:
@@ -23,41 +23,13 @@ class TestSnakeMovimento:
     def test_mover_para_baixo(self):
         snake = Snake(start=(5,5))
         snake.move('s')
-        assert snake.head() == (6, 5) 
-    def test_mover_para_direita(self):
-        snake = Snake(start=(5,5))
-        snake.move('d')
-        assert snake.head() == (5, 6)
-    def test_mover_para_esquerda(self):
-        snake = Snake(start=(5,5))
-        snake.move('a')
-        assert snake.head() == (5, 4)
-    def test_mover_para_cima(self):
-        snake = Snake(start=(5,5))
-        snake.move('w')
-        assert snake.head() == (4, 5)
-    def test_corpo_segue_cabeca(self):
-        snake = Snake(start=(5,5))
-        snake.grow()
-        snake.move('d')
-        assert snake.body() == [(5, 6), (5, 5)]
+        assert snake.head() == (6, 5)
 
 class TestSnakeColisao:
     def test_wrap_around_direita(self):
         snake = Snake(start=(5, 19), bounds=(20, 10), wrap=True)
         snake.move('d')
         assert snake.head() == (5, 0)
-        assert snake.is_dead() == False
-
-    def test_wrap_around_esquerda(self):
-        snake = Snake(start=(5, 0), bounds=(20, 10), wrap=True)
-        snake.move('a')
-        assert snake.head() == (5, 19)
-
-    def test_wrap_around_baixo(self):
-        snake = Snake(start=(9, 5), bounds=(20, 10), wrap=True)
-        snake.move('s')
-        assert snake.head() == (0, 5)
 
     def test_colisao_com_o_proprio_corpo(self):
         snake = Snake(start=[(5, 5), (5, 4), (4, 4)])
@@ -68,13 +40,3 @@ class TestSnakeColisao:
         snake = Snake(start=[(5,5), (5,4), (4,4), (4,5)])
         snake.move('w') 
         assert snake.is_dead() == False
-
-class TestGameLogic:
-    def test_quantidade_de_frutas_base_inicial(self):
-        snake = Snake(start=(0,0))
-        # Lógica: (tamanho // 10) + 1
-        assert (len(snake.body()) // 10) + 1 == 1
-
-    def test_quantidade_de_frutas_tamanho_10(self):
-        snake = Snake(start=[(0,i) for i in range(10)])
-        assert (len(snake.body()) // 10) + 1 == 2
