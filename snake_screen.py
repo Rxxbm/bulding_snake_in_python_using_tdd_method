@@ -41,6 +41,24 @@ class PygameScreen:
             self.cell_size = self.initial_cell_size
             self.display = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
 
+    def draw_menu(self):
+        self.display.fill((175, 215, 70))
+        
+        title = self.big_font.render("TDD SNAKE GAME", True, (43, 51, 24))
+        mode1 = self.font.render("1. MODO NORMAL (Com Paredes)", True, (255, 255, 255))
+        mode2 = self.font.render("2. MODO WRAP (Sem Bordas)", True, (255, 255, 255))
+        hint = self.font.render("Pressione 1 ou 2 para começar", True, (43, 51, 24))
+
+        # Desenhar uma "cobrinha" decorativa no menu
+        pygame.draw.rect(self.display, (71, 117, 238), (self.display.get_width()//2 - 100, 150, 200, 40), border_radius=10)
+        
+        self.display.blit(title, (self.display.get_width()//2 - title.get_width()//2, 220))
+        self.display.blit(mode1, (self.display.get_width()//2 - mode1.get_width()//2, 350))
+        self.display.blit(mode2, (self.display.get_width()//2 - mode2.get_width()//2, 410))
+        self.display.blit(hint, (self.display.get_width()//2 - hint.get_width()//2, 520))
+        
+        pygame.display.flip()
+
     def draw_game(self, engine):
         self.display.fill((175, 215, 70))
         
@@ -114,38 +132,54 @@ class PygameScreen:
 
 def main():
     DIM = (30, 30)
-    engine = GameEngine(bounds=DIM)
     screen = PygameScreen(bounds=DIM, cell_size=20)
+    
+    engine = None
     last_input = 'd'
     running = True
-    game_over = False
+    game_state = "MENU" # MENU, PLAYING, GAMEOVER
+    current_wrap_mode = False
 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            
             if event.type == pygame.KEYDOWN:
-                if game_over:
-                    if event.key == pygame.K_r:
-                        engine = GameEngine(bounds=DIM)
-                        game_over = False
+                if game_state == "MENU":
+                    if event.key == pygame.K_1:
+                        current_wrap_mode = False
+                        engine = GameEngine(bounds=DIM, wrap=current_wrap_mode)
+                        game_state = "PLAYING"
                         last_input = 'd'
-                    if event.key == pygame.K_ESCAPE:
-                        running = False
-                else:
+                    if event.key == pygame.K_2:
+                        current_wrap_mode = True
+                        engine = GameEngine(bounds=DIM, wrap=current_wrap_mode)
+                        game_state = "PLAYING"
+                        last_input = 'd'
+                
+                elif game_state == "PLAYING":
                     if event.key == pygame.K_UP: last_input = 'w'
                     if event.key == pygame.K_DOWN: last_input = 's'
                     if event.key == pygame.K_LEFT: last_input = 'a'
                     if event.key == pygame.K_RIGHT: last_input = 'd'
                     if event.key == pygame.K_f:
                         screen.toggle_fullscreen()
+                
+                elif game_state == "GAMEOVER":
+                    if event.key == pygame.K_r:
+                        game_state = "MENU"
+                    if event.key == pygame.K_ESCAPE:
+                        running = False
 
-        if not game_over:
+        if game_state == "MENU":
+            screen.draw_menu()
+        elif game_state == "PLAYING":
             engine.update(last_input)
             if engine.snake.is_dead():
-                game_over = True
+                game_state = "GAMEOVER"
             screen.draw_game(engine)
-        else:
+        elif game_state == "GAMEOVER":
             screen.draw_game_over(len(engine.snake.body()) - 1)
             
         screen.clock.tick(10)
