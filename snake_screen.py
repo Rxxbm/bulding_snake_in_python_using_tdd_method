@@ -1,69 +1,206 @@
+import pygame
 import os
 import sys
-import tty
-import termios
-import threading
-import time
 from game_engine import GameEngine
 
-class io_handler:
-    def __init__(self, dim, speed):
-        self.x_size, self.y_size = dim
-        self.game_speed = speed
-        self.last_input = 'd'
-        self.matrix = [[0] * self.x_size for _ in range(self.y_size)]
+class PygameScreen:
+    def __init__(self, bounds=(40, 40), cell_size=20):
+        pygame.init()
+        self.bounds = bounds
+        self.initial_cell_size = cell_size
+        self.cell_size = cell_size
+        self.width = bounds[0] * cell_size
+        self.height = bounds[1] * cell_size
+        self.display = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
+        pygame.display.set_caption("TDD Snake - Pygame")
+        self.is_fullscreen = False
+        self.assets = {}
+        self._load_assets()
+        self.clock = pygame.time.Clock()
+        self.font = pygame.font.SysFont("Arial", 32)
+        self.big_font = pygame.font.SysFont("Arial", 64, bold=True)
 
-    def record_inputs(self):
-        def read_keys():
-            fd = sys.stdin.fileno()
-            old = termios.tcgetattr(fd)
-            try:
-                tty.setraw(fd)
-                while True:
-                    ch = sys.stdin.read(1)
-                    if ch in ('w', 'a', 's', 'd'): self.last_input = ch
-                    elif ch == '\x1b':
-                        self.last_input = 'end'
-                        break
-            finally:
-                termios.tcsetattr(fd, termios.TCSADRAIN, old)
-        t = threading.Thread(target=read_keys, daemon=True)
-        t.start()
+    def _load_assets(self):
+        graphics_path = "snake_graphics/Graphics"
+        if not os.path.exists(graphics_path): return
+        for file in os.listdir(graphics_path):
+            if file.endswith(".png"):
+                name = file.replace(".png", "")
+                img = pygame.image.load(os.path.join(graphics_path, file)).convert_alpha()
+                # O escalonamento agora acontece no momento do desenho ou quando a tela muda
+                self.assets[name] = img
 
-    def sync_and_display(self, engine):
-        for r in range(self.y_size):
-            for c in range(self.x_size): self.matrix[r][c] = 0
-        for fr, fc in engine.fruits: self.matrix[fr][fc] = 3
-        for i, (r, c) in enumerate(engine.snake.body()):
-            if 0 <= r < self.y_size and 0 <= c < self.x_size:
-                self.matrix[r][c] = 2 if i == 0 else 1
-        output = "\033[H" + "+" + "--" * self.x_size + "+\r\n"
-        for line in self.matrix:
-            row = "|"
-            for item in line:
-                if item == 1: row += "[]"
-                elif item == 2: row += "<>"
-                elif item == 3: row += "()"
-                else: row += "  "
-            output += row + "|\r\n"
-        output += "+" + "--" * self.x_size + "+\r\n"
-        output += f"SCORE: {len(engine.snake.body())-1} | TECLA: {self.last_input.upper()}\r\n"
-        sys.stdout.write(output)
-        sys.stdout.flush()
+    def toggle_fullscreen(self):
+        self.is_fullscreen = not self.is_fullscreen
+        if self.is_fullscreen:
+            info = pygame.display.Info()
+            self.display = pygame.display.set_mode((info.current_w, info.current_h), pygame.FULLSCREEN)
+            # Recalcular cell_size para preencher a tela
+            self.cell_size = min(info.current_w // self.bounds[0], info.current_h // self.bounds[1])
+        else:
+            self.cell_size = self.initial_cell_size
+            self.display = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
+
+    def draw_menu(self):
+        self.display.fill((175, 215, 70))
+        
+        title = self.big_font.render("TDD SNAKE GAME", True, (43, 51, 24))
+        mode1 = self.font.render("1. MODO NORMAL (Com Paredes)", True, (255, 255, 255))
+        mode2 = self.font.render("2. MODO WRAP (Sem Bordas)", True, (255, 255, 255))
+        hint = self.font.render("Pressione 1 ou 2 para começar", True, (43, 51, 24))
+
+        # Desenhar uma "cobrinha" decorativa no menu
+        pygame.draw.rect(self.display, (71, 117, 238), (self.display.get_width()//2 - 100, 150, 200, 40), border_radius=10)
+        
+        self.display.blit(title, (self.display.get_width()//2 - title.get_width()//2, 220))
+        self.display.blit(mode1, (self.display.get_width()//2 - mode1.get_width()//2, 350))
+        self.display.blit(mode2, (self.display.get_width()//2 - mode2.get_width()//2, 410))
+        self.display.blit(hint, (self.display.get_width()//2 - hint.get_width()//2, 520))
+        
+        pygame.display.flip()
+
+    def draw_game(self, engine):
+        self.display.fill((175, 215, 70))
+        
+        # Centralizar o grid
+        offset_x = (self.display.get_width() - (self.bounds[0] * self.cell_size)) // 2
+        offset_y = (self.display.get_height() - (self.bounds[1] * self.cell_size)) // 2
+
+        # Desenhar Grade/Bordas se não for modo Wrap
+        if not engine.snake.wrap:
+            # Borda externa grossa
+            border_rect = pygame.Rect(offset_x - 2, offset_y - 2, 
+                                    self.bounds[0] * self.cell_size + 4, 
+                                    self.bounds[1] * self.cell_size + 4)
+            pygame.draw.rect(self.display, (43, 51, 24), border_rect, 4)
+            
+            # Linhas de grade sutis
+            for x in range(self.bounds[0] + 1):
+                pygame.draw.line(self.display, (165, 205, 60), 
+                                 (offset_x + x * self.cell_size, offset_y),
+                                 (offset_x + x * self.cell_size, offset_y + self.bounds[1] * self.cell_size))
+            for y in range(self.bounds[1] + 1):
+                pygame.draw.line(self.display, (165, 205, 60), 
+                                 (offset_x, offset_y + y * self.cell_size),
+                                 (offset_x + self.bounds[0] * self.cell_size, offset_y + y * self.cell_size))
+
+        # Frutas
+        apple_img = pygame.transform.scale(self.assets["apple"], (self.cell_size, self.cell_size))
+        for r, c in engine.fruits:
+            self.display.blit(apple_img, (offset_x + c * self.cell_size, offset_y + r * self.cell_size))
+        
+        # Cobra
+        body = engine.snake.body()
+        direction = engine.snake.current_dir
+        for i, (r, c) in enumerate(body):
+            img_name = self._get_image_name(i, body, direction)
+            img = pygame.transform.scale(self.assets[img_name], (self.cell_size, self.cell_size))
+            self.display.blit(img, (offset_x + c * self.cell_size, offset_y + r * self.cell_size))
+        
+        pygame.display.flip()
+
+    def draw_game_over(self, score):
+        # Overlay escuro
+        overlay = pygame.Surface((self.display.get_width(), self.display.get_height()))
+        overlay.set_alpha(150)
+        overlay.fill((0, 0, 0))
+        self.display.blit(overlay, (0, 0))
+
+        text = self.big_font.render("GAME OVER", True, (255, 255, 255))
+        score_text = self.font.render(f"Pontuação Final: {score}", True, (255, 255, 255))
+        restart_text = self.font.render("Pressione R para Reiniciar ou ESC para Sair", True, (200, 200, 200))
+
+        self.display.blit(text, (self.display.get_width()//2 - text.get_width()//2, self.display.get_height()//2 - 100))
+        self.display.blit(score_text, (self.display.get_width()//2 - score_text.get_width()//2, self.display.get_height()//2))
+        self.display.blit(restart_text, (self.display.get_width()//2 - restart_text.get_width()//2, self.display.get_height()//2 + 100))
+        
+        pygame.display.flip()
+
+    def _get_image_name(self, index, body, direction):
+        if index == 0:
+            dir_map = {'w': 'head_up', 's': 'head_down', 'a': 'head_left', 'd': 'head_right'}
+            return dir_map.get(direction, "head_right")
+        if index == len(body) - 1:
+            curr, prev_seg = body[index], body[index - 1]
+            diff = (curr[0] - prev_seg[0], curr[1] - prev_seg[1])
+            if diff == (-1, 0): return "tail_up"
+            if diff == (1, 0): return "tail_down"
+            if diff == (0, -1): return "tail_left"
+            if diff == (0, 1): return "tail_right"
+            if diff[0] > 1: return "tail_up"
+            if diff[0] < -1: return "tail_down"
+            if diff[1] > 1: return "tail_left"
+            if diff[1] < -1: return "tail_right"
+            return "tail_right"
+        curr, prev_seg, next_seg = body[index], body[index - 1], body[index + 1]
+        def norm(d):
+            if d > 1: return -1
+            if d < -1: return 1
+            return d
+        p_diff = (norm(prev_seg[0] - curr[0]), norm(prev_seg[1] - curr[1]))
+        n_diff = (norm(next_seg[0] - curr[0]), norm(next_seg[1] - curr[1]))
+        if p_diff[0] == n_diff[0]: return "body_horizontal"
+        if p_diff[1] == n_diff[1]: return "body_vertical"
+        diffs = {p_diff, n_diff}
+        if diffs == {(0,-1), (1,0)}: return "body_bottomleft"
+        if diffs == {(0,1), (1,0)}: return "body_bottomright"
+        if diffs == {(0,-1), (-1,0)}: return "body_topleft"
+        if diffs == {(0,1), (-1,0)}: return "body_topright"
+        return "body_horizontal"
 
 def main():
-    DIM = (20, 10)
-    engine = GameEngine(bounds=DIM)
-    io = io_handler(DIM, 0.15)
-    io.record_inputs()
-    sys.stdout.write("\033[2J\033[?25l")
-    try:
-        while not engine.snake.is_dead():
-            if io.last_input == 'end': break
-            engine.update(io.last_input)
-            io.sync_and_display(engine)
-            time.sleep(io.game_speed)
-    finally:
-        sys.stdout.write("\033[?25h\r\nGAME OVER\r\n")
+    DIM = (30, 30)
+    screen = PygameScreen(bounds=DIM, cell_size=20)
+    
+    engine = None
+    last_input = 'd'
+    running = True
+    game_state = "MENU" # MENU, PLAYING, GAMEOVER
+    current_wrap_mode = False
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            
+            if event.type == pygame.KEYDOWN:
+                if game_state == "MENU":
+                    if event.key == pygame.K_1:
+                        current_wrap_mode = False
+                        engine = GameEngine(bounds=DIM, wrap=current_wrap_mode)
+                        game_state = "PLAYING"
+                        last_input = 'd'
+                    if event.key == pygame.K_2:
+                        current_wrap_mode = True
+                        engine = GameEngine(bounds=DIM, wrap=current_wrap_mode)
+                        game_state = "PLAYING"
+                        last_input = 'd'
+                
+                elif game_state == "PLAYING":
+                    if event.key == pygame.K_UP: last_input = 'w'
+                    if event.key == pygame.K_DOWN: last_input = 's'
+                    if event.key == pygame.K_LEFT: last_input = 'a'
+                    if event.key == pygame.K_RIGHT: last_input = 'd'
+                    if event.key == pygame.K_f:
+                        screen.toggle_fullscreen()
+                
+                elif game_state == "GAMEOVER":
+                    if event.key == pygame.K_r:
+                        game_state = "MENU"
+                    if event.key == pygame.K_ESCAPE:
+                        running = False
+
+        if game_state == "MENU":
+            screen.draw_menu()
+        elif game_state == "PLAYING":
+            engine.update(last_input)
+            if engine.snake.is_dead():
+                game_state = "GAMEOVER"
+            screen.draw_game(engine)
+        elif game_state == "GAMEOVER":
+            screen.draw_game_over(len(engine.snake.body()) - 1)
+            
+        screen.clock.tick(10)
+    pygame.quit()
 
 if __name__ == '__main__': main()
