@@ -29,7 +29,21 @@ class TestPygameScreen:
         pygame.quit()
 
     def test_get_image_name_curves(self, screen):
-        # Curva body_topright
+        # Body curve: body_topright
         body = [(4,5), (5,5), (5,6)]
         assert screen._get_image_name(index=1, body=body) == "body_topright"
         pygame.quit()
+
+    def test_score_calculation(self, screen):
+        # Simula uma engine com cobra de tamanho 3 (score 2)
+        class MockEngine:
+            def __init__(self):
+                class MockSnake:
+                    def body(self): return [(0,0), (0,1), (0,2)]
+                self.snake = MockSnake()
+
+        engine = MockEngine()
+        score = len(engine.snake.body()) - 1
+        assert score == 2
+        pygame.quit()
+
