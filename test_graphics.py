@@ -35,15 +35,16 @@ class TestPygameScreen:
         pygame.quit()
 
     def test_score_calculation(self, screen):
-        # Simula uma engine com cobra de tamanho 3 (score 2)
-        class MockEngine:
-            def __init__(self):
-                class MockSnake:
-                    def body(self): return [(0,0), (0,1), (0,2)]
-                self.snake = MockSnake()
-
+        # ... (mantendo o anterior)
         engine = MockEngine()
         score = len(engine.snake.body()) - 1
         assert score == 2
+        pygame.quit()
+
+    def test_head_direction_size_1(self, screen):
+        # Cobra de tamanho 1 movendo para cima ('w')
+        assert screen._get_image_name(index=0, body=[(5,5)], direction='w') == "head_up"
+        # Cobra de tamanho 1 movendo para esquerda ('a')
+        assert screen._get_image_name(index=0, body=[(5,5)], direction='a') == "head_left"
         pygame.quit()
 
