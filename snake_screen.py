@@ -62,9 +62,27 @@ class PygameScreen:
     def draw_game(self, engine):
         self.display.fill((175, 215, 70))
         
-        # Centralizar o grid se estiver em tela cheia
+        # Centralizar o grid
         offset_x = (self.display.get_width() - (self.bounds[0] * self.cell_size)) // 2
         offset_y = (self.display.get_height() - (self.bounds[1] * self.cell_size)) // 2
+
+        # Desenhar Grade/Bordas se não for modo Wrap
+        if not engine.snake.wrap:
+            # Borda externa grossa
+            border_rect = pygame.Rect(offset_x - 2, offset_y - 2, 
+                                    self.bounds[0] * self.cell_size + 4, 
+                                    self.bounds[1] * self.cell_size + 4)
+            pygame.draw.rect(self.display, (43, 51, 24), border_rect, 4)
+            
+            # Linhas de grade sutis
+            for x in range(self.bounds[0] + 1):
+                pygame.draw.line(self.display, (165, 205, 60), 
+                                 (offset_x + x * self.cell_size, offset_y),
+                                 (offset_x + x * self.cell_size, offset_y + self.bounds[1] * self.cell_size))
+            for y in range(self.bounds[1] + 1):
+                pygame.draw.line(self.display, (165, 205, 60), 
+                                 (offset_x, offset_y + y * self.cell_size),
+                                 (offset_x + self.bounds[0] * self.cell_size, offset_y + y * self.cell_size))
 
         # Frutas
         apple_img = pygame.transform.scale(self.assets["apple"], (self.cell_size, self.cell_size))
