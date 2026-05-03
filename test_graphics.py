@@ -17,7 +17,19 @@ class TestPygameScreen:
         pygame.quit()
 
     def test_load_assets(self, screen):
-        # Este teste deve falhar pois PygameScreen não existe ou não carrega assets
         assert "apple" in screen.assets
         assert "head_up" in screen.assets
+        pygame.quit()
+
+    def test_get_image_name_head_and_tail(self, screen):
+        # Cabeça para cima
+        assert screen._get_image_name(index=0, body=[(5,5), (6,5)]) == "head_up"
+        # Cauda para baixo
+        assert screen._get_image_name(index=1, body=[(5,5), (6,5)]) == "tail_down"
+        pygame.quit()
+
+    def test_get_image_name_curves(self, screen):
+        # Curva body_topright
+        body = [(4,5), (5,5), (5,6)]
+        assert screen._get_image_name(index=1, body=body) == "body_topright"
         pygame.quit()
