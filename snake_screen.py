@@ -55,8 +55,9 @@ class PygameScreen:
         
         # Cobra
         body = engine.snake.body()
+        direction = engine.snake.current_dir
         for i, (r, c) in enumerate(body):
-            img_name = self._get_image_name(i, body)
+            img_name = self._get_image_name(i, body, direction)
             img = pygame.transform.scale(self.assets[img_name], (self.cell_size, self.cell_size))
             self.display.blit(img, (offset_x + c * self.cell_size, offset_y + r * self.cell_size))
         
@@ -79,20 +80,10 @@ class PygameScreen:
         
         pygame.display.flip()
 
-    def _get_image_name(self, index, body):
+    def _get_image_name(self, index, body, direction):
         if index == 0:
-            if len(body) == 1: return "head_right"
-            curr, next_seg = body[0], body[1]
-            diff = (curr[0] - next_seg[0], curr[1] - next_seg[1])
-            if diff == (-1, 0): return "head_up"
-            if diff == (1, 0): return "head_down"
-            if diff == (0, -1): return "head_left"
-            if diff == (0, 1): return "head_right"
-            if diff[0] > 1: return "head_up"
-            if diff[0] < -1: return "head_down"
-            if diff[1] > 1: return "head_left"
-            if diff[1] < -1: return "head_right"
-            return "head_right"
+            dir_map = {'w': 'head_up', 's': 'head_down', 'a': 'head_left', 'd': 'head_right'}
+            return dir_map.get(direction, "head_right")
         if index == len(body) - 1:
             curr, prev_seg = body[index], body[index - 1]
             diff = (curr[0] - prev_seg[0], curr[1] - prev_seg[1])
